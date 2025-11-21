@@ -1,0 +1,33 @@
+﻿[
+  {
+    "Name": "Ukraine",
+    "Code": "UA",
+    "Slug": "ukraine",
+    "Image": "https://flagcdn.com/16x12/ua.png"
+  },
+  {
+    "Name": "United States",
+    "Code": "US",
+    "Slug": "united-states",
+    "Image": "https://flagcdn.com/16x12/us.png"
+  },
+  {
+    "Name": "France",
+    "Code": "FR",
+    "Slug": "france",
+    "Image": "https://flagcdn.com/16x12/fr.png"
+  },
+
+  {
+    "Name": "Germany",
+    "Code": "DE",
+    "Slug": "germany",
+    "Image": "https://flagcdn.com/16x12/de.png"
+  },
+  {
+    "Name": "United Kingdom",
+    "Code": "UK",
+    "Slug": "united-kingdom",
+    "Image": "https://flagcdn.com/16x12/gb.png"
+  }
+]
