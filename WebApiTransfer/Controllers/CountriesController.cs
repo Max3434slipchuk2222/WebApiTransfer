@@ -1,4 +1,5 @@
-﻿using Core.Models.Location;
+﻿using Core.Interfaces;
+using Core.Models.Location;
 using Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,28 +9,20 @@ namespace WebApiTransfer.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class CountriesController : ControllerBase
+	public class CountriesController(ICountryService countryService) : ControllerBase
 	{
-		private readonly AppDbTransferContext context;
-		public CountriesController(AppDbTransferContext context)
-		{
-			this.context = context;
-		}
 		[HttpGet]
 		public async Task<IActionResult> GetCountries()
 		{
-			var countries = await context.Countries
-				.Select(x => new CountryItemModel
-				{
-					Id = x.Id,
-					Name = x.Name,
-					Code = x.Code,
-					Slug = x.Slug,
-					Image = x.Image
-				})
-				.ToListAsync();
+			var list = await countryService.GetListAsync();
 
-			return Ok(countries);
+			return Ok(list);
+		}
+		[HttpPost]
+		public async Task<IActionResult> CreateCountry([FromForm] CountryCreateModel model)
+		{
+			var item = await countryService.CreateAsync(model);
+			return CreatedAtAction(null, item);
 		}
 	}
 }

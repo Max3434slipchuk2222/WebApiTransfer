@@ -1,6 +1,9 @@
+using Core.Interfaces;
+using Core.Services;
 using Domain;
 using Domain.Entities.Location;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,8 +16,11 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<ICountryService, CountryService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 var app = builder.Build();
-using(var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 	try
@@ -25,11 +31,11 @@ using(var scope = app.Services.CreateScope())
 		if (!context.Countries.Any())
 		{
 			var contentRoot = app.Environment.ContentRootPath;
-			var path = Path.Combine(contentRoot, "JSON", "countries.json");
+			var pathCountry = Path.Combine(contentRoot, "JSON", "countries.json");
 
-			if (File.Exists(path))
+			if (File.Exists(pathCountry))
 			{
-				var jsonData = File.ReadAllText(path);
+				var jsonData = File.ReadAllText(pathCountry);
 
 				var options = new JsonSerializerOptions
 				{
@@ -73,5 +79,16 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var dirImageName = builder.Configuration.GetValue<string>("DirImageName") ?? "duplo";
+
+var path = Path.Combine(Directory.GetCurrentDirectory(), dirImageName);
+Directory.CreateDirectory(dirImageName);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+	FileProvider = new PhysicalFileProvider(path),
+	RequestPath = $"/{dirImageName}"
+});
 
 app.Run();
