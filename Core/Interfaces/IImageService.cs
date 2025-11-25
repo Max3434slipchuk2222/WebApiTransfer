@@ -10,4 +10,5 @@ namespace Core.Interfaces;
 public interface IImageService
 {
 	public Task<string> UploadImageAsync(IFormFile form);
+	void DeleteImage(string fileName);
 }

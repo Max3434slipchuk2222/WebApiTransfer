@@ -24,7 +24,40 @@ public class CountryService(AppDbTransferContext appDbContext, IImageService ima
 	}
 	public async Task <List<CountryItemModel>> GetListAsync()
 	{
-		var list = await appDbContext.Countries.ProjectTo<CountryItemModel>(mapper.ConfigurationProvider).ToListAsync();
+		var list = await appDbContext.Countries.Where(x => !x.IsDeleted).ProjectTo<CountryItemModel>(mapper.ConfigurationProvider).ToListAsync();
 		return list;
+	}
+	public async Task DeleteAsync(int id)
+	{
+		var entity = await appDbContext.Countries.FindAsync(id);
+
+		if (entity != null)
+		{
+			entity.IsDeleted = true;
+			await appDbContext.SaveChangesAsync();
+		}
+	}
+	public async Task UpdateAsync(CountryEditModel model)
+	{
+		var entity = await appDbContext.Countries.FindAsync(model.Id);
+
+		if (entity == null || entity.IsDeleted)
+		{
+			throw new Exception("Країна не знайдена");
+		}
+
+		mapper.Map(model, entity);
+
+		if (model.Image != null)
+		{
+			if (!string.IsNullOrEmpty(entity.Image))
+			{
+				imageService.DeleteImage(entity.Image);
+			}
+			entity.Image = await imageService.UploadImageAsync(model.Image);
+		}
+
+		appDbContext.Countries.Update(entity);
+		await appDbContext.SaveChangesAsync();
 	}
 }

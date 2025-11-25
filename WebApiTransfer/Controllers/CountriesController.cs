@@ -24,5 +24,25 @@ namespace WebApiTransfer.Controllers
 			var item = await countryService.CreateAsync(model);
 			return CreatedAtAction(null, item);
 		}
+		[HttpPut]
+		public async Task<IActionResult> EditCountry([FromForm] CountryEditModel model)
+		{
+			try
+			{
+				await countryService.UpdateAsync(model);
+				return Ok();
+			}
+			catch (Exception ex)
+			{
+				return NotFound(new { message = ex.Message });
+			}
+		}
+
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteCountry(int id)
+		{
+			await countryService.DeleteAsync(id);
+			return Ok();
+		}
 	}
 }
