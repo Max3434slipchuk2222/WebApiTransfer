@@ -57,7 +57,6 @@ public class CountryService(AppDbTransferContext appDbContext, IImageService ima
 			entity.Image = await imageService.UploadImageAsync(model.Image);
 		}
 
-		appDbContext.Countries.Update(entity);
 		await appDbContext.SaveChangesAsync();
 	}
 }
