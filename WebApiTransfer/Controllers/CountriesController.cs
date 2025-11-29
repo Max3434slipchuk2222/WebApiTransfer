@@ -1,5 +1,5 @@
 ﻿using Core.Interfaces;
-using Core.Models.Location;
+using Core.Models.Location.Country;
 using Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
