@@ -1,6 +1,7 @@
 ﻿using Core.Interfaces;
 using Core.Models.Location.Country;
 using Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,11 @@ namespace WebApiTransfer.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize(Roles ="Admin")]
 	public class CountriesController(ICountryService countryService) : ControllerBase
 	{
 		[HttpGet]
+		[AllowAnonymous]
 		public async Task<IActionResult> GetCountries()
 		{
 			var list = await countryService.GetListAsync();

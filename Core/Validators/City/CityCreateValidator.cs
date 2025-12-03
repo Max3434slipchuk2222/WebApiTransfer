@@ -14,7 +14,7 @@ public class CityCreateValidator : AbstractValidator<CityCreateModel>
 			{
 				RuleFor(x => x.Name)
 					.MustAsync(async (name, cancellation) =>
-						!await db.Countries.AnyAsync(c => c.Name.ToLower() == name.ToLower().Trim(), cancellation))
+						!await db.Cities.AnyAsync(c => c.Name.ToLower() == name.ToLower().Trim(), cancellation))
 					.WithMessage("Місто з такою назвою вже існує");
 			});
 
@@ -36,7 +36,7 @@ public class CityCreateValidator : AbstractValidator<CityCreateModel>
 			{
 				RuleFor(x => x.Slug)
 					.MustAsync(async (slug, cancellation) =>
-						!await db.Countries.AnyAsync(c => c.Slug.ToLower() == slug.ToLower().Trim(), cancellation))
+						!await db.Cities.AnyAsync(c => c.Slug.ToLower() == slug.ToLower().Trim(), cancellation))
 					.WithMessage("Slug міста з такою назвою вже існує");
 			});
 		RuleFor(x => x.Image)
