@@ -104,8 +104,12 @@ builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<GoogleService>();
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+
 
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>

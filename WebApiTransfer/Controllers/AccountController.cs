@@ -11,10 +11,10 @@ namespace WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountController(UserManager<UserEntity> userManager, IJwtTokenService jwtTokenService, GoogleService googleService, SignInManager<UserEntity> signInManager) : ControllerBase
+public class AccountController(UserManager<UserEntity> userManager,IUserService userService, IJwtTokenService jwtTokenService, GoogleService googleService, SignInManager<UserEntity> signInManager, IImageService imageService) : ControllerBase
 {
 	[HttpPost("register")]
-	public async Task<IActionResult> Register([FromBody] RegisterModel model)
+	public async Task<IActionResult> Register([FromForm] RegisterModel model)
 	{
 		var repeatUser = await userManager.FindByEmailAsync(model.Email);
 		if (repeatUser != null)
@@ -22,13 +22,19 @@ public class AccountController(UserManager<UserEntity> userManager, IJwtTokenSer
 			return BadRequest(new { Message = "Користувач з такою поштою вже існує" });
 		}
 
+		string imageName = string.Empty;
+		if (model.Image != null)
+		{
+			imageName = await imageService.UploadImageAsync(model.Image);
+		}
 		var user = new UserEntity
 		{
 			FirstName = model.FirstName,
 			LastName = model.LastName,
 			Email = model.Email,
 			UserName = model.Email,
-			Image = string.Empty,
+			PhoneNumber = model.Phone,
+			Image = imageName,
 			EmailConfirmed = true 
 		};
 
@@ -36,6 +42,10 @@ public class AccountController(UserManager<UserEntity> userManager, IJwtTokenSer
 
 		if (!result.Succeeded)
 		{
+			if (!string.IsNullOrEmpty(imageName))
+			{
+				imageService.DeleteImage(imageName);
+			}
 			return BadRequest(result.Errors);
 		}
 		var token = await jwtTokenService.CreateAsync(user);
@@ -96,23 +106,12 @@ public class AccountController(UserManager<UserEntity> userManager, IJwtTokenSer
 
 	
 	[HttpGet("me")]
-	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+	[Authorize]
 	public async Task<IActionResult> GetCurrentUser()
 	{
 
-		var user = await userManager.GetUserAsync(User);
-		if (user == null)
-		{
-			return Unauthorized();
-		}
-		return Ok(new
-		{
-			user.Email,
-			user.FirstName,
-			user.LastName,
-			user.Image,
-			Roles = await userManager.GetRolesAsync(user)
-		});
+		var model = await userService.GetUserProfileAsync();
+		return Ok(model);
 	}
 }
 
