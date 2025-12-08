@@ -125,79 +125,8 @@ builder.Services.AddControllers(options =>
 var app = builder.Build();
 
 
-using (var scope = app.Services.CreateScope())
-{
-	var services = scope.ServiceProvider;
-	try
-	{
-		var context = services.GetRequiredService<AppDbTransferContext>();
-		var userManager = services.GetRequiredService<UserManager<UserEntity>>();
-		var roleManager = services.GetRequiredService<RoleManager<RoleEntity>>();
-		var config = services.GetRequiredService<IConfiguration>();
+await DbSeeder.SeedData(app.Services);
 
-		context.Database.Migrate();
-
-		var dirName = config.GetValue<string>("DirImageName") ?? "duplo";
-		var imagePath = Path.Combine(Directory.GetCurrentDirectory(), dirName);
-		if (!Directory.Exists(imagePath))
-		{
-			Directory.CreateDirectory(imagePath);
-		}
-
-		if (!context.Countries.Any())
-		{
-			var contentRoot = app.Environment.ContentRootPath;
-			var pathCountry = Path.Combine(contentRoot, "JSON", "countries.json");
-
-			if (File.Exists(pathCountry))
-			{
-				var jsonData = File.ReadAllText(pathCountry);
-				var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-				var countries = JsonSerializer.Deserialize<List<CountryEntity>>(jsonData, options);
-
-				if (countries != null && countries.Any())
-				{
-					foreach (var country in countries)
-					{
-						country.DateCreated = DateTime.UtcNow;
-						country.IsDeleted = false;
-					}
-					context.Countries.AddRange(countries);
-					context.SaveChanges();
-				}
-			}
-		}
-		var roles = new[] { "User", "Admin" };
-		foreach (var role in roles)
-		{
-			if (!await roleManager.RoleExistsAsync(role))
-			{
-				await roleManager.CreateAsync(new RoleEntity { Name = role });
-			}
-		}
-		if (!context.Users.Any())
-		{
-			var adminUser = new UserEntity
-			{
-				UserName = "admin@gmail.com",
-				Email = "admin@gmail.com",
-				FirstName = "System",
-				LastName = "Administrator",
-				Image = "default.jpg",
-				EmailConfirmed = true
-			};
-			var result = await userManager.CreateAsync(adminUser, "Admin123");
-			if (result.Succeeded)
-			{
-				await userManager.AddToRoleAsync(adminUser, "Admin");
-			}
-		}
-	}
-	catch (Exception ex)
-	{
-		Console.WriteLine($"Помилка ініціалізації: {ex.Message}");
-	}
-}
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
