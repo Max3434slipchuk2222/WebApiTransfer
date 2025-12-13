@@ -55,11 +55,13 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("ReactPolicy", policy =>
+	options.AddPolicy("AllowTwoDomains", policy =>
 	{
-		policy.WithOrigins("http://localhost:5173") 
+		policy.WithOrigins("http://localhost:5173",
+			"http://transfersitereactts.somee.com")
+			  .AllowAnyHeader()
 			  .AllowAnyMethod()
-			  .AllowAnyHeader();
+			  .AllowCredentials(); 
 	});
 });
 builder.Services.AddControllers();
@@ -106,6 +108,7 @@ builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<GoogleService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -124,33 +127,66 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
-await DbSeeder.SeedData(app.Services);
-
-if (app.Environment.IsDevelopment())
+lifetime.ApplicationStarted.Register(async () =>
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+	try
+	{
+		using var scope = app.Services.CreateScope();
+		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+		var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+		var admins = await userManager.GetUsersInRoleAsync("Admin");
+
+		if (admins.Any())
+		{
+			var subject = "Server Started Successfully";
+			var body = $"Адміністраторе, повідомляємо, що сервер успішно запустився.Час запуску: {DateTime.UtcNow}";
+
+			foreach (var admin in admins)
+			{
+				if (!string.IsNullOrEmpty(admin.Email))
+				{
+					await emailService.SendEmailAsync(admin.Email, subject, body);
+					Console.WriteLine($" Notification sent to Admin: {admin.Email}");
+				}
+			}
+		}
+		else
+		{
+			Console.WriteLine("No admins found to send startup notification.");
+		}
+	}
+	catch (Exception ex)
+	{
+		Console.WriteLine($"Failed to send startup emails: {ex.Message}");
+	}
+});
+app.UseCors("AllowTwoDomains");
+await DbSeeder.SeedData(app.Services);
+var dirName = builder.Configuration.GetValue<string>("DirImageName") ?? "images";
+var dirPath = Path.Combine(app.Environment.ContentRootPath, dirName);
+
+if (!Directory.Exists(dirPath))
+{
+	Directory.CreateDirectory(dirPath);
 }
 
-app.UseCors("ReactPolicy");
+app.UseStaticFiles(new StaticFileOptions
+{
+	FileProvider = new PhysicalFileProvider(dirPath),
+	RequestPath = $"/{dirName}" 
+});
+
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API"));
+
 app.Use(async (context, next) =>
 {
 	context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
 	context.Response.Headers.Append("Cross-Origin-Embedder-Policy", "require-corp");
 	await next();
 });
-
-var dirImageName = builder.Configuration.GetValue<string>("DirImageName") ?? "duplo";
-var path = Path.Combine(Directory.GetCurrentDirectory(), dirImageName);
-
-
-app.UseStaticFiles(new StaticFileOptions
-{
-	FileProvider = new PhysicalFileProvider(path),
-	RequestPath = $"/{dirImageName}" 
-});
-
 app.UseAuthentication();
 app.UseAuthorization();
 

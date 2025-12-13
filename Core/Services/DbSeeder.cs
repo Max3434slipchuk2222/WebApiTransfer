@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Core.Interfaces;
+using Domain;
 using Domain.Entities;
 using Domain.Entities.Idenity;
 using Domain.Entities.Location;
@@ -21,17 +22,18 @@ public static class DbSeeder
 			var context = services.GetRequiredService<AppDbTransferContext>();
 			var userManager = services.GetRequiredService<UserManager<UserEntity>>();
 			var roleManager = services.GetRequiredService<RoleManager<RoleEntity>>();
+			var imageService = services.GetRequiredService<IImageService>();
 			var config = services.GetRequiredService<IConfiguration>();
 			var env = services.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
-
+			
 			await context.Database.MigrateAsync();
 
-			var dirName = config.GetValue<string>("DirImageName") ?? "duplo";
+			var dirName = config.GetValue<string>("DirImageName") ?? "images";
 			var imagePath = Path.Combine(Directory.GetCurrentDirectory(), dirName);
 			if (!Directory.Exists(imagePath)) Directory.CreateDirectory(imagePath);
-
 			var contentRoot = env.ContentRootPath;
 			var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+			
 			if (!context.Countries.Any())
 			{
 				var path = Path.Combine(contentRoot, "JSON", "countries.json");
@@ -41,7 +43,7 @@ public static class DbSeeder
 					var items = JsonSerializer.Deserialize<List<CountryEntity>>(data, jsonOptions);
 					if (items != null)
 					{
-						foreach (var item in items) { item.DateCreated = DateTime.UtcNow; item.IsDeleted = false; }
+						foreach (var item in items) { item.DateCreated = DateTime.UtcNow; item.IsDeleted = false; item.Image = await ProcessImage(item.Image, imageService); }
 						await context.Countries.AddRangeAsync(items);
 						await context.SaveChangesAsync();
 					}
@@ -57,7 +59,7 @@ public static class DbSeeder
 					var items = JsonSerializer.Deserialize<List<CityEntity>>(data, jsonOptions);
 					if (items != null)
 					{
-						foreach (var item in items) { item.DateCreated = DateTime.UtcNow; item.IsDeleted = false; }
+						foreach (var item in items) { item.DateCreated = DateTime.UtcNow; item.IsDeleted = false; item.Image = await ProcessImage(item.Image, imageService); }
 						await context.Cities.AddRangeAsync(items);
 						await context.SaveChangesAsync();
 					}
@@ -80,7 +82,7 @@ public static class DbSeeder
 			}
 			if (!context.Transportations.Any() && context.Cities.Any() && context.TransportationStatuses.Any())
 			{
-				var path = Path.Combine(contentRoot, "JSON", "transportations.json");
+				var path = Path.Combine(contentRoot, "JSON", "transportation.json");
 				if (File.Exists(path))
 				{
 					var data = await File.ReadAllTextAsync(path);
@@ -161,6 +163,24 @@ public static class DbSeeder
 		catch (Exception ex)
 		{
 			Console.WriteLine($"Помилка під час сідінгу БД: {ex.Message}");
+		}
+	}
+	private static async Task<string> ProcessImage(string? imageUrl, IImageService imageService)
+	{
+		if (string.IsNullOrEmpty(imageUrl) || !imageUrl.StartsWith("http"))
+		{
+			return "default.jpg";
+		}
+
+		try
+		{
+			using var client = new HttpClient();
+			var fileBytes = await client.GetByteArrayAsync(imageUrl);
+			return await imageService.SaveImageAsync(fileBytes);
+		}
+		catch (Exception)
+		{
+			return "default.jpg";
 		}
 	}
 }
