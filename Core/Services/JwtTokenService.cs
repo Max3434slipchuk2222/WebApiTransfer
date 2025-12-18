@@ -22,7 +22,7 @@ public class JwtTokenService(IConfiguration configuration,
 			new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
 			new Claim("email", user.Email ?? "noemail@gmail.com"),
 			new Claim("name", $"{user.LastName} {user.FirstName}"),
-			new Claim("image", $"{user.Image}")
+			new Claim("image", $"{user.Image ?? "default.jpg"}")
 		};
 		foreach (var role in await userManager.GetRolesAsync(user))
 		{

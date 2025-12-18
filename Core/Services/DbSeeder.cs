@@ -25,7 +25,7 @@ public static class DbSeeder
 			var imageService = services.GetRequiredService<IImageService>();
 			var config = services.GetRequiredService<IConfiguration>();
 			var env = services.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
-			
+
 			await context.Database.MigrateAsync();
 
 			var dirName = config.GetValue<string>("DirImageName") ?? "images";
@@ -33,7 +33,7 @@ public static class DbSeeder
 			if (!Directory.Exists(imagePath)) Directory.CreateDirectory(imagePath);
 			var contentRoot = env.ContentRootPath;
 			var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-			
+
 			if (!context.Countries.Any())
 			{
 				var path = Path.Combine(contentRoot, "JSON", "countries.json");
@@ -46,6 +46,7 @@ public static class DbSeeder
 						foreach (var item in items) { item.DateCreated = DateTime.UtcNow; item.IsDeleted = false; item.Image = await ProcessImage(item.Image, imageService); }
 						await context.Countries.AddRangeAsync(items);
 						await context.SaveChangesAsync();
+
 					}
 				}
 			}
