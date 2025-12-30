@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace WebApi.Controllers;
 
@@ -112,6 +113,52 @@ public class AccountController(UserManager<UserEntity> userManager,IUserService 
 
 		var model = await userService.GetUserProfileAsync();
 		return Ok(model);
+	}
+	[HttpPost("forgot-password")]
+	public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+	{
+		bool res = await userService.ForgotPasswordAsync(model);
+		if (res)
+			return Ok();
+		else
+			return BadRequest(new
+			{
+				Status = 400,
+				IsValid = false,
+				Errors = new { Email = "Користувача з такою поштою не існує" }
+			});
+	}
+	[HttpPost("reset-password")]
+	public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+	{
+		var isTry = await userService.ResetPasswordAsync(model);
+		if (!isTry)
+		{
+			return BadRequest(new
+			{
+				Status = 400,
+				IsValid = false,
+				Errors = new { Email = "Невірні дані для відновлення паролю" }
+			});
+		}
+		return Ok();
+	}
+	[HttpGet]
+	public async Task<IActionResult> Search([FromQuery] UserSearchModel model)
+	{
+		//Обчислення часу виконання
+		Stopwatch stopwatch = new Stopwatch();
+		stopwatch.Start();
+		var result = await userService.SearchAsync(model);
+		stopwatch.Stop();
+		// Get the elapsed time as a TimeSpan value.
+		TimeSpan ts = stopwatch.Elapsed;
+		// Format and display the TimeSpan value.
+		string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+			ts.Hours, ts.Minutes, ts.Seconds,
+			ts.Milliseconds / 10);
+		Console.WriteLine("-----------Elapsed Time------------: " + elapsedTime);
+		return Ok(result);
 	}
 }
 

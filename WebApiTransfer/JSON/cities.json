@@ -1,6 +1,5 @@
 ﻿[
   {
-    "Id": 1,
     "Name": "Київ",
     "Slug": "kyiv",
     "CountryId": 1,
@@ -8,7 +7,6 @@
     "Image": "https://portalhistoryua.com/wp-content/uploads/2024/05/majdan-nezalezhnosti-v-kyyevi-glib-albovskyj-unsplash.jpg"
   },
   {
-    "Id": 2,
     "Name": "Львів",
     "Slug": "lviv",
     "CountryId": 1,
@@ -16,7 +14,6 @@
     "Image": "https://hotel-edem.lviv.ua/wp-content/uploads/2019/04/25-750x500.jpg"
   },
   {
-    "Id": 3,
     "Name": "Луцьк",
     "Slug": "lutsk",
     "CountryId": 1,
@@ -24,7 +21,6 @@
     "Image": "https://restpark.com.ua/wp-content/uploads/2017/01/lutsk.jpg.pagespeed.ce.hz71XIkrbD.jpg"
   },
   {
-    "Id": 4,
     "Name": "Лондон",
     "Slug": "london",
     "CountryId": 4,

@@ -1,14 +1,12 @@
 ﻿using Core.Models.Account;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using Core.Models.Search;
 namespace Core.Interfaces
 {
 	public interface IUserService
 	{
 		Task<UserProfileModel> GetUserProfileAsync();
+		public Task<bool> ForgotPasswordAsync(ForgotPasswordModel model);
+		public Task<bool> ResetPasswordAsync(ResetPasswordModel model);
+		public Task<SearchResult<UserItemModel>> SearchAsync(UserSearchModel model);
 	}
 }

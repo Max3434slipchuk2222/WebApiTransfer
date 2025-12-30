@@ -109,6 +109,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ISmtpService, SmtpService>();
 builder.Services.AddScoped<GoogleService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -127,41 +128,41 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
-var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+//var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
-lifetime.ApplicationStarted.Register(async () =>
-{
-	try
-	{
-		using var scope = app.Services.CreateScope();
-		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
-		var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-		var admins = await userManager.GetUsersInRoleAsync("Admin");
+//lifetime.ApplicationStarted.Register(async () =>
+//{
+//	try
+//	{
+//		using var scope = app.Services.CreateScope();
+//		var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+//		var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+//		var admins = await userManager.GetUsersInRoleAsync("Admin");
 
-		if (admins.Any())
-		{
-			var subject = "Server Started Successfully";
-			var body = $"Адміністраторе, повідомляємо, що сервер успішно запустився.Час запуску: {DateTime.UtcNow}";
+//		if (admins.Any())
+//		{
+//			var subject = "Server Started Successfully";
+//			var body = $"Адміністраторе, повідомляємо, що сервер успішно запустився.Час запуску: {DateTime.UtcNow}";
 
-			foreach (var admin in admins)
-			{
-				if (!string.IsNullOrEmpty(admin.Email))
-				{
-					await emailService.SendEmailAsync(admin.Email, subject, body);
-					Console.WriteLine($" Notification sent to Admin: {admin.Email}");
-				}
-			}
-		}
-		else
-		{
-			Console.WriteLine("No admins found to send startup notification.");
-		}
-	}
-	catch (Exception ex)
-	{
-		Console.WriteLine($"Failed to send startup emails: {ex.Message}");
-	}
-});
+//			foreach (var admin in admins)
+//			{
+//				if (!string.IsNullOrEmpty(admin.Email))
+//				{
+//					await emailService.SendEmailAsync(admin.Email, subject, body);
+//					Console.WriteLine($" Notification sent to Admin: {admin.Email}");
+//				}
+//			}
+//		}
+//		else
+//		{
+//			Console.WriteLine("No admins found to send startup notification.");
+//		}
+//	}
+//	catch (Exception ex)
+//	{
+//		Console.WriteLine($"Failed to send startup emails: {ex.Message}");
+//	}
+//});
 app.UseCors("AllowTwoDomains");
 await DbSeeder.SeedData(app.Services);
 var dirName = builder.Configuration.GetValue<string>("DirImageName") ?? "images";
