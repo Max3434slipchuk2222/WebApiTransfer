@@ -51,6 +51,10 @@ namespace Core.Services
 			};
 
 			var result = await smtpService.SendEmailAsync(emailModel);
+			if (!result)
+			{
+				throw new Exception("Користувача знайдено, але не вдалося відправити email.");
+			}
 
 			return result;
 		}

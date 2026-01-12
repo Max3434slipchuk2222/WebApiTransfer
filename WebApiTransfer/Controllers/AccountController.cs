@@ -49,6 +49,7 @@ public class AccountController(UserManager<UserEntity> userManager,IUserService 
 			}
 			return BadRequest(result.Errors);
 		}
+		await userManager.AddToRoleAsync(user, "User");
 		var token = await jwtTokenService.CreateAsync(user);
 		return Ok(new { token });
 	}
@@ -90,6 +91,7 @@ public class AccountController(UserManager<UserEntity> userManager,IUserService 
 				};
 				var createResult = await userManager.CreateAsync(user);
 				if (!createResult.Succeeded) return BadRequest(createResult.Errors);
+				await userManager.AddToRoleAsync(user, "User");
 			}
 			await userManager.AddLoginAsync(user, info);
 				

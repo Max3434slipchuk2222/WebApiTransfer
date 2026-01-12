@@ -110,6 +110,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmtpService, SmtpService>();
+builder.Services.AddScoped<ITransportationService, TransportationService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<GoogleService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
